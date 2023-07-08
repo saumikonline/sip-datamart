@@ -2,30 +2,30 @@
 enum YesNo {
 	Y, N
 }
-entity Audit {
+entity AuditRecord {
 	tableName String,
     columnName String,
-    oldValue String,
-    newValue String,
+    oldValue TextBlob,
+    newValue TextBlob,
     createddt Instant,
     createdBy String,
-    Reason String
+    auditReason String
 }
 
-entity Country {
+entity CountryList {
 	countryCD   String,
 	countryName String,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
     modifiedBy String
 }
 
-entity State {
+entity StateList {
 	stateCD   String,
 	stateName String,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -34,13 +34,13 @@ entity State {
 
 
 relationship ManyToOne {
-	State{country} to Country
+	StateList{country} to CountryList
 }
 
-entity TimeZone {
+entity TimeZoneList {
 	timezoneCD   String,
 	timezoneName String,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -48,10 +48,10 @@ entity TimeZone {
 }
 
 
-entity Organization {
+entity Sponsor {
 	orgName String required,
     orgCD String required,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -61,23 +61,23 @@ entity Organization {
 entity Task {
 	title String,
     taskCode String,
-	description String,
+	description TextBlob,
     taskStatus TaskStatus,
     taskCategory TaskCategory,
-    isactive YesNo default Y,
-    mailSent  YesNo default Y,
+    isactive YesNo,
+    mailSent  YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
     modifiedBy String
 }
 
-entity Reports {
+entity Report {
 	reportCD String,
     reportName String,
 	description String,
     reportCategory ReportCategory,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -100,17 +100,17 @@ entity ReportExecutionHistory {
     modifiedBy String
 }
 
-entity ReportExportedFiles {
+entity ReportExportedFile {
     jasperResourceID String,
     label String,
     creationDate Instant,
     updateDate Instant,
     version String,
-    URI String,
+    fileURI String,
     description String,
     fileDate Blob,
     fileType String,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -118,14 +118,14 @@ entity ReportExportedFiles {
 }
 
 relationship ManyToOne {
-	ReportExportedFiles{user} to UserProfiles,
-    ReportExportedFiles{report} to Reports,
-    ReportExportedFiles{task} to Task
+	ReportExportedFile{user} to UserProfile,
+    ReportExportedFile{report} to Report,
+    ReportExportedFile{task} to Task
 }
 
 relationship ManyToOne {
-	ReportExecutionHistory{user} to UserProfiles,
-    ReportExecutionHistory{report} to Reports
+	ReportExecutionHistory{user} to UserProfile,
+    ReportExecutionHistory{report} to Report
 }
 
 enum TaskStatus {
@@ -133,14 +133,14 @@ enum TaskStatus {
 }
 
 relationship ManyToOne {
-	Task{user} to UserProfiles,
-    Task{organization} to Organization
+	Task{user} to UserProfile,
+    Task{sponsor} to Sponsor
 }
 
 /**
- * The UserProfiles entity.
+ * The UserProfile entity.
  */
-entity UserProfiles {
+entity UserProfile {
 	firstName String,
 	lastName String,
 	email String required,
@@ -152,7 +152,8 @@ entity UserProfiles {
 	postalCode String,
 	city String,
 	phone String,
-    isactive YesNo default Y,
+	language Language,
+    isactive YesNo,
     password String,
     createddt Instant required,
     createdBy String required,
@@ -165,18 +166,17 @@ enum UserType {
 }
 
 relationship ManyToOne {
-	UserProfiles{organization} to Organization,
-    UserProfiles{timeZone} to TimeZone,
-    UserProfiles{language} to Language,
-    UserProfiles{country} to Country,
-	UserProfiles{state} to State
+	UserProfile{sponsor} to Sponsor,
+    UserProfile{timeZone} to TimeZoneList,
+    UserProfile{country} to CountryList,
+	UserProfile{state} to StateList
 
 }
 
-entity Role {
+entity UserRole {
 	roleName String,
     roleCD String,
-    isactive YesNo default Y,
+    isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -186,7 +186,7 @@ entity Role {
 entity UserRoleMap {
     startDate Instant required,
 	endDate Instant required,
-	isactive YesNo default Y,
+	isactive YesNo,
     createddt Instant required,
     createdBy String required,
     modifiedDt Instant,
@@ -194,9 +194,9 @@ entity UserRoleMap {
 }
 
 relationship ManyToOne {
-	UserRoleMap{user} to UserProfiles,
-    UserRoleMap{role} to Role,
-    UserRoleMap{organization} to Organization
+	UserRoleMap{user} to UserProfile,
+    UserRoleMap{role} to UserRole,
+    UserRoleMap{sponsor} to Sponsor
 }
 
 enum Language {
@@ -206,14 +206,15 @@ enum Language {
 
 
 // Set pagination options
-paginate Country, State, TimeZone, Role, Reports with infinite-scroll
-paginate UserProfiles, UserRoleMap, ReportExecutionHistory, ReportExportedFiles with pagination
+paginate CountryList, StateList, TimeZoneList, Role, Report, Sponsor with infinite-scroll
+paginate UserProfile, UserRoleMap, ReportExecutionHistory, ReportExportedFile with pagination
 
 // Use Data Transfer Objects (DTO)
 dto * with mapstruct
 
 // Set service options to all except few
-service all with serviceImpl except Audit
+service all with serviceImpl except AuditRecord
 
+//jhiPrefix * with "TBL_"
 // Set an angular suffix
-// angularSuffix * with mySuffix
+//angularSuffix * with mySuffix
