@@ -1,0 +1,219 @@
+
+enum YesNo {
+	Y, N
+}
+entity Audit {
+	tableName String,
+    columnName String,
+    oldValue String,
+    newValue String,
+    createddt Instant,
+    createdBy String,
+    Reason String
+}
+
+entity Country {
+	countryCD   String,
+	countryName String,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+entity State {
+	stateCD   String,
+	stateName String,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+
+relationship ManyToOne {
+	State{country} to Country
+}
+
+entity TimeZone {
+	timezoneCD   String,
+	timezoneName String,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+
+entity Organization {
+	orgName String required,
+    orgCD String required,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+entity Task {
+	title String,
+    taskCode String,
+	description String,
+    taskStatus TaskStatus,
+    taskCategory TaskCategory,
+    isactive YesNo default Y,
+    mailSent  YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+entity Reports {
+	reportCD String,
+    reportName String,
+	description String,
+    reportCategory ReportCategory,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+enum TaskCategory {
+	DATAMART, SIP
+}
+
+enum ReportCategory {
+	SIP, DOCEX, SAFETY, AUDIT
+}
+
+entity ReportExecutionHistory {
+	startTime Instant,
+    endTime  Instant,
+	createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+entity ReportExportedFiles {
+    jasperResourceID String,
+    label String,
+    creationDate Instant,
+    updateDate Instant,
+    version String,
+    URI String,
+    description String,
+    fileDate Blob,
+    fileType String,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+relationship ManyToOne {
+	ReportExportedFiles{user} to UserProfiles,
+    ReportExportedFiles{report} to Reports,
+    ReportExportedFiles{task} to Task
+}
+
+relationship ManyToOne {
+	ReportExecutionHistory{user} to UserProfiles,
+    ReportExecutionHistory{report} to Reports
+}
+
+enum TaskStatus {
+	Deleted, Completed, Cancelled, Pending, Complete, Removed
+}
+
+relationship ManyToOne {
+	Task{user} to UserProfiles,
+    Task{organization} to Organization
+}
+
+/**
+ * The UserProfiles entity.
+ */
+entity UserProfiles {
+	firstName String,
+	lastName String,
+	email String required,
+    transID String required,
+	usertypecd UserType,
+    address1 String,
+    address2 String,
+    address3 String,
+	postalCode String,
+	city String,
+	phone String,
+    isactive YesNo default Y,
+    password String,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+enum UserType {
+	SPU, STU, CRO 
+}
+
+relationship ManyToOne {
+	UserProfiles{organization} to Organization,
+    UserProfiles{timeZone} to TimeZone,
+    UserProfiles{language} to Language,
+    UserProfiles{country} to Country,
+	UserProfiles{state} to State
+
+}
+
+entity Role {
+	roleName String,
+    roleCD String,
+    isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+entity UserRoleMap {
+    startDate Instant required,
+	endDate Instant required,
+	isactive YesNo default Y,
+    createddt Instant required,
+    createdBy String required,
+    modifiedDt Instant,
+    modifiedBy String
+}
+
+relationship ManyToOne {
+	UserRoleMap{user} to UserProfiles,
+    UserRoleMap{role} to Role,
+    UserRoleMap{organization} to Organization
+}
+
+enum Language {
+    FRENCH, ENGLISH, SPANISH, BENGALI, HINDI, CHINESE, TAMIL, TELUGU, MALAYALAM, MARATHI
+}
+
+
+
+// Set pagination options
+paginate Country, State, TimeZone, Role, Reports with infinite-scroll
+paginate UserProfiles, UserRoleMap, ReportExecutionHistory, ReportExportedFiles with pagination
+
+// Use Data Transfer Objects (DTO)
+dto * with mapstruct
+
+// Set service options to all except few
+service all with serviceImpl except Audit
+
+// Set an angular suffix
+// angularSuffix * with mySuffix
