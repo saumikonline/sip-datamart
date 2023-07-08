@@ -1,0 +1,3 @@
+org.springframework.test.context.ContextCustomizerFactory=\
+com.sc.sip.datamart.config.SqlTestContainersSpringContextCustomizerFactory,\
+com.sc.sip.datamart.config.TestContainersSpringContextCustomizerFactory
